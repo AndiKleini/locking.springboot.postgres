@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Room Listings</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .room-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .room-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .room-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .room-header {
+            background-color: #3498db;
+            color: white;
+            padding: 15px;
+        }
+        
+        .room-body {
+            padding: 20px;
+        }
+        
+        .room-property {
+            margin-bottom: 10px;
+            display: flex;
+        }
+        
+        .property-label {
+            font-weight: bold;
+            min-width: 100px;
+            color: #7f8c8d;
+        }
+        
+        .property-value {
+            flex: 1;
+        }
+        
+        .availability {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        .availability span {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Available Hotel Rooms</h1>
+    
+    <div class="room-list">
+        <!-- Room 1 -->
+        <div class="room-card">
+            <div class="room-header">
+                <h2>Deluxe Ocean View</h2>
+            </div>
+            <div class="room-body">
+                <div class="room-property">
+                    <span class="property-label">Room ID:</span>
+                    <span class="property-value">101</span>
+                </div>
+                <div class="room-property">
+                    <span class="property-label">Type:</span>
+                    <span class="property-value">Double Bed</span>
+                </div>
+                <div class="room-property">
+                    <span class="property-label">Amenities:</span>
+                    <span class="property-value">Balcony, AC, Minibar, Free WiFi</span>
+                </div>
+            </div>
+            <div class="availability">
+                <span><strong>Available from:</strong> 2023-06-15</span>
+                <span><strong>Available until:</strong> 2023-06-22</span>
+            </div>
+        </div>
+        
+        <!-- Room 2 -->
+        <div class="room-card">
+            <div class="room-header">
+                <h2>Executive Suite</h2>
+            </div>
+            <div class="room-body">
+                <div class="room-property">
+                    <span class="property-label">Room ID:</span>
+                    <span class="property-value">205</span>
+                </div>
+                <div class="room-property">
+                    <span class="property-label">Type:</span>
+                    <span class="property-value">King Suite</span>
+                </div>
+                <div class="room-property">
+                    <span class="property-label">Amenities:</span>
+                    <span class="property-value">Living Area, Jacuzzi, 24/7 Room Service</span>
+                </div>
+            </div>
+            <div class="availability">
+                <span><strong>Available from:</strong> 2023-06-10</span>
+                <span><strong>Available until:</strong> 2023-06-18</span>
+            </div>
+        </div>
+        
+        <!-- Room 3 -->
+        <div class="room-card">
+            <div class="room-header">
+                <h2>Standard Room</h2>
+            </div>
+            <div class="room-body">
+                <div class="room-property">
+                    <span class="property-label">Room ID:</span>
+                    <span class="property-value">307</span>
+                </div>
+                <div class="room-property">
+                    <span class="property-label">Type:</span>
+                    <span class="property-value">Twin Beds</span>
+                </div>
+                <div class="room-property">
+                    <span class="property-label">Amenities:</span>
+                    <span class="property-value">TV, Work Desk, Coffee Maker</span>
+                </div>
+            </div>
+            <div class="availability">
+                <span><strong>Available from:</strong> 2023-06-12</span>
+                <span><strong>Available until:</strong> 2023-06-20</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

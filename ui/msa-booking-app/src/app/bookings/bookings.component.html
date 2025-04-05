@@ -1,0 +1,33 @@
+<h1>Available Hotel Rooms</h1>
+    
+<div class="room-list">
+    <!-- Room 1 -->
+    
+    <div class="room-card" *ngFor="let room of rooms">
+        <div class="room-header">
+            <h2>Deluxe Ocean View</h2>
+        </div>
+        <div class="room-body">
+            <div class="room-property">
+                <span class="property-label">Room ID:</span>
+                <span class="property-value">{{room.roomId}}</span>
+            </div>
+            <div class="room-property">
+                <span class="property-label">Name:</span>
+                <span class="property-value">{{room.name}}</span>
+            </div>
+            <div class="room-property">
+                <span class="property-label">Type:</span>
+                <span class="property-value">Double Bed</span>
+            </div>
+            <div class="room-property">
+                <span class="property-label">Amenities:</span>
+                <span class="property-value">Balcony, AC, Minibar, Free WiFi</span>
+            </div>
+        </div>
+        <div class="availability">
+            <span><strong>Available from:</strong>{{room.from}}</span>
+            <span><strong>Available until:</strong>{{room.until}}</span>
+        </div>
+    </div>
+</div>
