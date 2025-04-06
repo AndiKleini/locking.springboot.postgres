@@ -65,6 +65,9 @@
               "buildTarget": "msa-booking-app:build:development"
             }
           },
+          "options": {
+              "port": 4500
+          },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {

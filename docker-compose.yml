@@ -1,6 +1,16 @@
 version: '2'
 
 services:
+  ui:
+    image: 'booking_ui'
+    build:
+      context: .
+    ports:
+      - "80:80"
+    container_name: booking_ui_1
+    depends_on:
+      - app
+
   app:
     image: 'booking_api'
     build:
