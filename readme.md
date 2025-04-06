@@ -51,7 +51,7 @@ curl -H 'Content-Type: application/json' \
 ```
 You can now modify the fields name, roomId, start and finish in the body as you will.\
 For a successful start the app looks like that
-[!image](./images/ui.png)
+![](./images/ui.png)
 
 
 
