@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS bookingsconfirmation (
+    id BIGSERIAL PRIMARY KEY,
+    bookingId BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bookings (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    roomId BIGINT NOT NULL,
+    start TIMESTAMP NOT NULL,
+    finish TIMESTAMP NOT NULL
+);
