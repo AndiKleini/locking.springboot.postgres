@@ -24,6 +24,8 @@ app.UseHttpsRedirection();
 
 MapOptimisticLockingApi(app);
 
+MapPessemisticLockingApi(app);
+
 app.Run();
 
 static void MapOptimisticLockingApi(WebApplication app)
@@ -31,6 +33,30 @@ static void MapOptimisticLockingApi(WebApplication app)
     const string optimisticUrlPath = "optimistic";
 
     MapBookingApi(app, optimisticUrlPath);
+
+    app.MapPost(
+    $"/{optimisticUrlPath}/booking",
+    (Booking booking) =>
+    {
+        // unfortunately we cannot guarantee that all locations which might
+        // evaluate to false here are not somehow offered to our customers
+        // (e.g.: shared links in social medias, clients that are working
+        // with old data ... )
+        // Therefore this check is crucial
+        if (!CanBook(booking))
+        {
+            return Results.Conflict("The room is not available for the selected time frame.");
+        }
+
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+        db.Booking.Add(booking);
+        db.SaveChanges();
+        return Results.Created(
+            $"/optimistic/booking/{booking.Id}",
+            booking);
+    })
+    .WithName($"{optimisticUrlPath}CreateBooking");
 
     app.MapGet(
         "/optimistic/bookingconfirmation",
@@ -77,6 +103,85 @@ static void MapOptimisticLockingApi(WebApplication app)
         .WithName("OptimisticCreateBookingConfirmation");
 }
 
+static void MapPessemisticLockingApi(WebApplication app)
+{
+    const string pessemisticUrlPath = "pessemistic";
+
+    MapBookingApi(app, pessemisticUrlPath);
+
+    app.MapPost(
+    $"/{pessemisticUrlPath}/booking",
+    (Booking booking) =>
+    {
+        // unfortunately we cannot guarantee that all locations which might
+        // evaluate to false here are not somehow offered to our customers
+        // (e.g.: shared links in social medias, clients that are working
+        // with old data ... )
+        // Therefore this check is crucial
+        if (!CanBook(booking))
+        {
+            return Results.Conflict("The room is not available for the selected time frame.");
+        }
+
+        // TODO: assure that the same room cannot be booked twice
+        // intention: it might happen for some locations that booking attempts to the same rooms are
+        // made in parallel. Consequently it is better when we prevent this very early in the proce
+
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+        db.Booking.Add(booking);
+        db.SaveChanges();
+        return Results.Created(
+            $"/{pessemisticUrlPath}/booking/{booking.Id}",
+            booking);
+    })
+    .WithName($"{pessemisticUrlPath}CreateBooking");
+
+    app.MapGet(
+        "/pessemistic/bookingconfirmation",
+        () =>
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+            var confirmation = db.Confirmation;
+            return !confirmation?.Any() ?? true ?
+                Results.NoContent() :
+                Results.Ok(confirmation.ToList());
+        })
+        .WithName("PessemisticGetAllBookingConfirmation");
+
+    app.MapGet(
+        "/pessemistic/bookingconfirmation/{id}",
+        (int id) =>
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+            var confirmation = db.Confirmation.Where(c => c.BookingId == id).FirstOrDefault();
+            return confirmation == null ?
+                Results.NotFound() :
+                Results.Ok(new { Id = id, Status = "Confirmed" });
+        })
+        .WithName("PessemisticGetSpecificBookingConfirmation");
+
+    app.MapPost(
+        "/pessemistic/bookingconfirmation",
+        (BookingConfirmation bookingConfirmation) =>
+        {
+            // This can usually not fail as we are usip/booking/ng pessimistic locking
+            // When this crashes it means that some infratsructure problem occurred
+            // When the confirmation is not written it is indiacating that the transaction
+            // flow was abortzed unexpectedly
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+            db.Confirmation.Add(bookingConfirmation);
+            db.SaveChanges();
+            return Results.Created(
+                $"/optimistic/bookingconfirmation/{bookingConfirmation.Id}",
+                bookingConfirmation);
+        })
+        .WithName("PessemisticCreateBookingConfirmation");
+}
+
 static void MapBookingApi(WebApplication app, string apiSubpath)
 {
     app.MapGet(
@@ -90,7 +195,7 @@ static void MapBookingApi(WebApplication app, string apiSubpath)
                 Results.NoContent() :
                 Results.Ok(bookings.ToList());
         })
-        .WithName("OptimisticGetAllBookings");
+        .WithName($"{apiSubpath}GetAllBookings");
 
     app.MapGet(
         $"/{apiSubpath}/booking/{{id}}",
@@ -103,31 +208,7 @@ static void MapBookingApi(WebApplication app, string apiSubpath)
                 Results.NotFound() :
                 Results.Ok(booking);
         })
-        .WithName("OptimisticGetSpecificBooking");
-
-    app.MapPost(
-        $"/{apiSubpath}/booking",
-        (Booking booking) =>
-        {
-            // unfortunately we cannot guarantee that all locations which might
-            // evaluate to false here are not somehow offered to our customers
-            // (e.g.: shared links in social medias, clients that are working
-            // with old data ... )
-            // Therefore this check is crucial
-            if (!CanBook(booking))
-            {
-                return Results.Conflict("The room is not available for the selected time frame.");
-            }
-
-            using var scope = app.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
-            db.Booking.Add(booking);
-            db.SaveChanges();
-            return Results.Created(
-                $"/optimistic/booking/{booking.Id}",
-                booking);
-        })
-        .WithName("OptimisticCreateBooking");
+        .WithName($"{apiSubpath}GetSpecificBooking");
 
     app.MapDelete(
         $"/{apiSubpath}/booking/{{id}}",
@@ -144,7 +225,7 @@ static void MapBookingApi(WebApplication app, string apiSubpath)
             db.SaveChanges();
             return Results.NoContent();
         })
-        .WithName("OptimisticDeleteBooking");
+        .WithName($"{apiSubpath}DeleteBooking");
 }
 
 static bool CanBook(Booking booking)
