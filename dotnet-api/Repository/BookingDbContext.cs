@@ -10,5 +10,12 @@ namespace Repository
 
         public DbSet<Booking> Booking { get; set; }
         public DbSet<BookingConfirmation> Confirmation { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Booking>().Property(b => b.Start).HasColumnType("timestamp");
+            modelBuilder.Entity<Booking>().Property(b => b.Finish).HasColumnType("timestamp");
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

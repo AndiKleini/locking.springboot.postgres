@@ -9,12 +9,13 @@ namespace Entities
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Column("id")]
         public long Id { get; set; }
 
         [Column("name")]
         public string? Name { get; set; }
 
-        [Column("roomId")]
+        [Column("roomid")]
         public long RoomId { get; set; }
 
         [Column("start")]
