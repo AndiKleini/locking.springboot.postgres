@@ -28,72 +28,9 @@ app.Run();
 
 static void MapOptimisticLockingApi(WebApplication app)
 {
-    app.MapGet(
-        "/optimistic/booking",
-        () =>
-        {
-            using var scope = app.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
-            var bookings = db.Booking;
-            return !bookings?.Any() ?? true ?
-                Results.NoContent() :
-                Results.Ok(bookings.ToList());
-        })
-        .WithName("OptimisticGetAllBookings");
-    
-    app.MapGet(
-        "/optimistic/booking/{id}",
-        (long id) =>
-        {
-            using var scope = app.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
-            var booking = db.Booking.Find(id);
-            return booking == null ?
-                Results.NotFound() :
-                Results.Ok(booking);
-        })
-        .WithName("OptimisticGetSpecificBooking");
+    const string optimisticUrlPath = "optimistic";
 
-    app.MapPost(
-        "/optimistic/booking",
-        (Booking booking) =>
-        {
-            // unfortunately we cannot guarantee that all locations which might
-            // evaluate to false here are not somehow offered to our customers
-            // (e.g.: shared links in social medias, clients that are working
-            // with old data ... )
-            // Therefore this check is crucial
-            if (!CanBook(booking))
-            {
-                return Results.Conflict("The room is not available for the selected time frame.");
-            }
-
-            using var scope = app.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
-            db.Booking.Add(booking);
-            db.SaveChanges();
-            return Results.Created(
-                $"/optimistic/booking/{booking.Id}",
-                booking);
-        })
-        .WithName("OptimisticCreateBooking");
-
-    app.MapDelete(
-        "/optimistic/booking/{id}",
-        (long id) =>
-        {
-            using var scope = app.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
-            var booking = db.Booking.Find(id);
-            if (booking == null)
-            {
-                return Results.NotFound();
-            }
-            db.Booking.Remove(booking);
-            db.SaveChanges();
-            return Results.NoContent();
-        })
-        .WithName("OptimisticDeleteBooking");
+    MapBookingApi(app, optimisticUrlPath);
 
     app.MapGet(
         "/optimistic/bookingconfirmation",
@@ -138,6 +75,76 @@ static void MapOptimisticLockingApi(WebApplication app)
                 bookingConfirmation);
         })
         .WithName("OptimisticCreateBookingConfirmation");
+}
+
+static void MapBookingApi(WebApplication app, string apiSubpath)
+{
+    app.MapGet(
+        $"/{apiSubpath}/booking",
+        () =>
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+            var bookings = db.Booking;
+            return !bookings?.Any() ?? true ?
+                Results.NoContent() :
+                Results.Ok(bookings.ToList());
+        })
+        .WithName("OptimisticGetAllBookings");
+
+    app.MapGet(
+        $"/{apiSubpath}/booking/{{id}}",
+        (long id) =>
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+            var booking = db.Booking.Find(id);
+            return booking == null ?
+                Results.NotFound() :
+                Results.Ok(booking);
+        })
+        .WithName("OptimisticGetSpecificBooking");
+
+    app.MapPost(
+        $"/{apiSubpath}/booking",
+        (Booking booking) =>
+        {
+            // unfortunately we cannot guarantee that all locations which might
+            // evaluate to false here are not somehow offered to our customers
+            // (e.g.: shared links in social medias, clients that are working
+            // with old data ... )
+            // Therefore this check is crucial
+            if (!CanBook(booking))
+            {
+                return Results.Conflict("The room is not available for the selected time frame.");
+            }
+
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+            db.Booking.Add(booking);
+            db.SaveChanges();
+            return Results.Created(
+                $"/optimistic/booking/{booking.Id}",
+                booking);
+        })
+        .WithName("OptimisticCreateBooking");
+
+    app.MapDelete(
+        $"/{apiSubpath}/booking/{{id}}",
+        (long id) =>
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+            var booking = db.Booking.Find(id);
+            if (booking == null)
+            {
+                return Results.NotFound();
+            }
+            db.Booking.Remove(booking);
+            db.SaveChanges();
+            return Results.NoContent();
+        })
+        .WithName("OptimisticDeleteBooking");
 }
 
 static bool CanBook(Booking booking)
